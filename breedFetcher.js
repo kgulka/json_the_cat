@@ -3,31 +3,27 @@
 
 const request = require('request');
 
-const getPageAtURL = function(url) {
+const fetchBreedDescription = function(breedName, callback) {
+  const url = "https://api.thecatapi.com/v1/breeds/search?q=" + breedName;
   request(url, (error, response, body) => {
-    
+    let desc = "";
     if (!response) {
-      console.log(`The website returned error.  Please enter a valid website url.`);
+      error = `The website returned error.  Please enter a valid website url.`;
       return;
     }
     if (response.statusCode < 300 && response.statusCode >= 200) {
-      if (body === '[]') {
-        console.log(`The cat breed selected was not found. Please input a different breed.`);
-        process.exit;
+      if (body === '[]' || body === '{}') {
+        error = "Cat breed not found.";
       } else {
         const data = JSON.parse(body);
-        console.log("Cat Description:",data[0]["description"]);
+        desc = data[0]["description"];
       }
     } else {
-      console.log(`The webpage returned error: ${response.statusCode}.  Please enter a valid web page url.`);
+      error = `The webpage returned error: ${response.statusCode}.  Please enter a valid web page url.`;
     }
+    callback(error, desc);
   });
+  return;
 };
 
-const breedName = process.argv[2];
-if (breedName) {
-  const urlIn = "https://api.thecatapi.com/v1/breeds/search?q=" + breedName;
-  getPageAtURL(urlIn);
-} else {
-  console.log(`Please input a breed name.`);
-}
+module.exports = { fetchBreedDescription };
